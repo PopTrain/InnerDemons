@@ -124,6 +124,18 @@ b.state(GUARD).onEnter(ctx -> StateTasks.requestAfter(ctx, ctx.owner().scheduler
 b.transition(IDLE, BITE).guard(TaskConditions.notScheduled(DemonEntity::scheduler, BITE_COOLDOWN));
 ```
 
+## Data and attachments
+
+A machine can be an attachment on its owner's `core.data.DataContainer`, so it's created on first use, saved with the rest of the owner's data, and stopped when the container closes. `StateData` ties owner data to states. See [data.md](data.md).
+
+```java
+public static final AttachmentKey<DemonEntity, DemonBrain> BRAIN =
+        CoreAttachments.stateMachine("brain", DemonEntity.class, DemonBrain.class, DemonBrain::new);
+
+b.state(GUARD).onEnter(ctx -> StateData.setWhileActive(ctx, ctx.owner().data(), DEFENSE_BONUS, 2));
+b.transition(IDLE, EVOLVING).guard(DataConditions.atLeast(BOND, 80));
+```
+
 ## Overridable hooks on `StateMachine`
 
 `onStarted`, `onStopped`, `onStateEntered`, `onStateExited`, `onTransitioned`, `onTransitionRejected`, `onCallbackError`. Use `addListener(StateMachineListener)` for external observers such as debug overlays.
