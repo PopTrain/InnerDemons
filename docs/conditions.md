@@ -133,4 +133,4 @@ Automatic transitions are checked every tick and fail silently, as before.
 
 - Store shared conditions in `static final` fields, just like graphs. They're immutable and safe to share.
 - Don't give conditions side effects or state that changes. Anything that needs to be remembered belongs in `StateContext` data or on the owner.
-- Random checks, for example a 1-in-200 chance per tick, work but are evaluated exactly once per attempt. Give them a name that makes the randomness obvious, such as `Condition.of("chance1/200", d -> d.getRandom().nextInt(200) == 0)`.
+- Random checks, for example a 1-in-200 chance per tick, work but are evaluated exactly once per attempt. Build them with `RngConditions` from `core.random`, such as `RngConditions.oneIn(DemonEntity::rng, 200)`, so they're named `chance1/200` and draw from a seeded stream. See [random.md](random.md).
