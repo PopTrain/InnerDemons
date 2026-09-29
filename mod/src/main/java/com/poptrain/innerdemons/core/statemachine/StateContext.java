@@ -1,9 +1,14 @@
 package com.poptrain.innerdemons.core.statemachine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import com.poptrain.innerdemons.core.event.Subscription;
 
 public final class StateContext<C, S> {
 
@@ -11,6 +16,7 @@ public final class StateContext<C, S> {
     private final StateNode<C, S> node;
     private final StateContext<C, S> parent;
     private Map<StateDataKey<?>, Object> data;
+    private List<Runnable> exitHooks;
     private int ticks;
     private boolean active = true;
 
@@ -118,6 +124,21 @@ public final class StateContext<C, S> {
         }
     }
 
+    public void addExitHook(Runnable hook) {
+        Objects.requireNonNull(hook, "hook");
+        ensureActive();
+        if (exitHooks == null) {
+            exitHooks = new ArrayList<>();
+        }
+        exitHooks.add(hook);
+    }
+
+    public <T extends Subscription> T bind(T subscription) {
+        Objects.requireNonNull(subscription, "subscription");
+        addExitHook(subscription::cancel);
+        return subscription;
+    }
+
     StateNode<C, S> node() {
         return node;
     }
@@ -130,9 +151,16 @@ public final class StateContext<C, S> {
         ticks = Math.max(0, value);
     }
 
+    List<Runnable> takeExitHooks() {
+        List<Runnable> hooks = exitHooks == null ? List.of() : exitHooks;
+        exitHooks = null;
+        return hooks;
+    }
+
     void deactivate() {
         active = false;
         data = null;
+        exitHooks = null;
     }
 
     private Map<StateDataKey<?>, Object> localData() {

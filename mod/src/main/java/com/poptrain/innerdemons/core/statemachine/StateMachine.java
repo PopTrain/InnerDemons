@@ -533,6 +533,10 @@ public class StateMachine<C, S> {
                 history.put(node.parent.key, node.key);
             }
             invoke("exit", node, () -> node.behavior.onExit(ctx, info));
+            List<Runnable> hooks = ctx.takeExitHooks();
+            for (int i = hooks.size() - 1; i >= 0; i--) {
+                invoke("exitHook", node, hooks.get(i));
+            }
             ctx.deactivate();
             activePath.remove(activePath.size() - 1);
             safeHook("onStateExited", node, () -> onStateExited(node.key, info));

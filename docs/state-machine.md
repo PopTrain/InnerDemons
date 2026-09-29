@@ -15,6 +15,7 @@ A hierarchical state machine with no Minecraft dependency, except for `StateMach
 | `StateDataKey<T>` | Typed key for per-state scratch data that is wiped when the state exits. |
 | `StateSnapshot` / `StateMachineNbt` | Save and load the active path, ticks and history. |
 | `StateConditions` | Ready-made `Condition`s over a `StateContext` (ticks, scoped data, active states, owner lift). |
+| `StateEvents` / `StateTransitionEvent` | Bridge to the event bus: forward bus events into a machine, publish transitions, state-scoped subscriptions. |
 
 `C` is the owner/context type (e.g. `DemonEntity`, `BattleContext`). `S` is the state key, usually an enum.
 
@@ -103,6 +104,15 @@ Guards, auto triggers, event filters, `canEnter` and `canExit` can all take a `C
 ```java
 b.transition(IDLE, HUNT).when(DemonConditions.NIGHT).guard(DemonConditions.HEALTHY);
 b.state(FLEE).canExit(StateConditions.ticksAtLeast(40));
+```
+
+## Event bus
+
+Machines connect to `core.event.EventBus` through `StateEvents`. Bus events can be forwarded into `fire`, transitions can be published as `StateTransitionEvent`s, and subscriptions can be tied to a state with `ctx.bind(...)` so they are cancelled when the state exits. `ctx.addExitHook(Runnable)` is the general cleanup hook behind it. See [event-bus.md](event-bus.md).
+
+```java
+StateEvents.connect(brain, bus, HurtEvent.class);
+b.state(GUARD).onEnter(ctx -> ctx.bind(bus.subscribe(AllyHurtEvent.class, e -> ctx.owner().retaliate(e.attacker()))));
 ```
 
 ## Overridable hooks on `StateMachine`
