@@ -393,4 +393,4 @@ DataNbt.load(data, tag.getCompound("Data"));
 - Use `persistent` for anything that must survive a save. Keep caches and render-only state transient.
 - Close the container when the owner goes away: entity `remove` on the server, `Battle.end()`, `ServerStoppedEvent` for server-scoped holders.
 - Use `DataChangingEvent` for "other systems may modify this" (held items, abilities, events). Use plain `set` for everything else, like `Rolls` vs `rng.chance`.
-- Syncing to the client isn't built yet. The dirty set is the hook: a sync pass can send `dirtyKeys()` for keys you mark as synced, then `clearDirty()`.
+- Syncing to the client is in `core.network`. List the keys in a `SyncRegistry` and implement `SyncedDataHolder`, or use `DataSync` for attachments and custom holders. It keeps its own change tracking, so `dirtyKeys()` stays free for saving. See [network.md](network.md).
