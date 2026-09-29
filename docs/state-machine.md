@@ -115,6 +115,15 @@ StateEvents.connect(brain, bus, HurtEvent.class);
 b.state(GUARD).onEnter(ctx -> ctx.bind(bus.subscribe(AllyHurtEvent.class, e -> ctx.owner().retaliate(e.attacker()))));
 ```
 
+## Scheduler
+
+Timed work inside a state goes through the owner's `core.schedule.TickScheduler`. Every `ScheduledTask` is a `Subscription`, so `ctx.bind(...)` cancels it when the state exits. `StateTasks` covers the common cases, and `TaskConditions` turns cooldowns into guards. See [scheduler.md](scheduler.md).
+
+```java
+b.state(GUARD).onEnter(ctx -> StateTasks.requestAfter(ctx, ctx.owner().scheduler(), 200, IDLE));
+b.transition(IDLE, BITE).guard(TaskConditions.notScheduled(DemonEntity::scheduler, BITE_COOLDOWN));
+```
+
 ## Overridable hooks on `StateMachine`
 
 `onStarted`, `onStopped`, `onStateEntered`, `onStateExited`, `onTransitioned`, `onTransitionRejected`, `onCallbackError`. Use `addListener(StateMachineListener)` for external observers such as debug overlays.
