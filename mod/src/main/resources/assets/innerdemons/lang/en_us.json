@@ -1,0 +1,13 @@
+{
+  "itemGroup.innerdemons": "Example Mod Tab",
+  "block.innerdemons.example_block": "Example Block",
+  "item.innerdemons.example_item": "Example Item",
+
+  "innerdemons.configuration.title": "Inner Demons Configs",
+  "innerdemons.configuration.section.innerdemons.common.toml": "Inner Demons Configs",
+  "innerdemons.configuration.section.innerdemons.common.toml.title": "Inner Demons Configs",
+  "innerdemons.configuration.items": "Item List",
+  "innerdemons.configuration.logDirtBlock": "Log Dirt Block",
+  "innerdemons.configuration.magicNumberIntroduction": "Magic Number Text",
+  "innerdemons.configuration.magicNumber": "Magic Number"
+}
