@@ -2,6 +2,8 @@ package com.example.innerdemons;
 
 import org.slf4j.Logger;
 
+import com.poptrain.innerdemons.species.DemonRegistries;
+
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -75,6 +77,7 @@ public class InnerDemons {
         ITEMS.register(modEventBus);
         // Register the Deferred Register to the mod event bus so tabs get registered
         CREATIVE_MODE_TABS.register(modEventBus);
+        DemonRegistries.register(modEventBus);
 
         // Register ourselves for server and other game events we are interested in.
         // Note that this is necessary if and only if we want *this* class (InnerDemons) to respond directly to events.

@@ -1,0 +1,81 @@
+{
+    "types": [
+        "simple"
+    ],
+    "rank": "kilo",
+    "base_stats": {
+        "hp": 40,
+        "stamina": 40,
+        "melee_attack": 30,
+        "melee_defense": 50,
+        "ranged_attack": 30,
+        "ranged_defense": 50,
+        "speed": 30
+    },
+    "training": {
+        "tp_yield": 1,
+        "catch_rate": 190,
+        "base_friendship": 50,
+        "base_exp": 49,
+        "growth_rate": "fast"
+    },
+    "gender_ratio": {
+        "male": 87,
+        "female": 12
+    },
+    "behavior": {
+        "flavor_preference": "sweet",
+        "favorite_habitat": "temperate",
+        "social_tendency": "solitude"
+    },
+    "evolutions": [
+        {
+            "method": "low_friendship",
+            "target": "mistrunt"
+        },
+        {
+            "method": "level_up",
+            "level": 10,
+            "target": "kiddoat"
+        },
+        {
+            "method": "level_up",
+            "level": 10,
+            "target": "chartle"
+        },
+        {
+            "method": "level_up",
+            "level": 10,
+            "target": "mubble"
+        }
+    ],
+    "movepool": {
+        "level_up": [
+            {
+                "level": 1,
+                "move": "tackle"
+            },
+            {
+                "level": 1,
+                "move": "growl"
+            },
+            {
+                "level": 5,
+                "move": "stare"
+            },
+            {
+                "level": 8,
+                "move": "lick"
+            }
+        ],
+        "mm": [
+            {
+                "move": "scapegoat"
+            },
+            {
+                "move": "dodge"
+            }
+        ],
+        "ranch": []
+    }
+}
