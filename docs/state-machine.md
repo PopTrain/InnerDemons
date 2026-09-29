@@ -14,6 +14,7 @@ A hierarchical state machine with no Minecraft dependency, except for `StateMach
 | `StateContext<C, S>` | Handle given to a state while it is active: owner, ticks in state, scoped data, `requestTransition`, `fire`. |
 | `StateDataKey<T>` | Typed key for per-state scratch data that is wiped when the state exits. |
 | `StateSnapshot` / `StateMachineNbt` | Save and load the active path, ticks and history. |
+| `StateConditions` | Ready-made `Condition`s over a `StateContext` (ticks, scoped data, active states, owner lift). |
 
 `C` is the owner/context type (e.g. `DemonEntity`, `BattleContext`). `S` is the state key, usually an enum.
 
@@ -94,6 +95,15 @@ StateMachineNbt.load(brain, tag.getCompound("Brain"));   // readAdditionalSaveDa
 ```
 
 When a machine is restored, `onEnter` runs again with `info.isRestore() == true`, so states can rebuild anything that isn't saved. Scoped data isn't saved. If a saved path no longer fits the graph (for example, a state was renamed in an update), `restore` returns `false` and the machine starts from its initial state.
+
+## Conditions
+
+Guards, auto triggers, event filters, `canEnter` and `canExit` can all take a `Condition` from `core.condition`, not just a lambda. A failed condition reports which check failed in the rejection detail. See [conditions.md](conditions.md).
+
+```java
+b.transition(IDLE, HUNT).when(DemonConditions.NIGHT).guard(DemonConditions.HEALTHY);
+b.state(FLEE).canExit(StateConditions.ticksAtLeast(40));
+```
 
 ## Overridable hooks on `StateMachine`
 

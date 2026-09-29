@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.poptrain.innerdemons.core.condition.ConditionResult;
+
 public final class Transition<C, S> {
 
     public enum Kind {
@@ -12,7 +14,17 @@ public final class Transition<C, S> {
         AUTO
     }
 
-    record NamedGuard<C, S>(String name, TransitionGuard<C, S> guard) {
+    @FunctionalInterface
+    interface GuardCheck<C, S> {
+
+        ConditionResult check(StateContext<C, S> source, TransitionInfo<S> info);
+    }
+
+    record NamedGuard<C, S>(String name, GuardCheck<C, S> check) {
+
+        static <C, S> NamedGuard<C, S> of(String name, TransitionGuard<C, S> guard) {
+            return new NamedGuard<>(name, (source, info) -> ConditionResult.of(guard.test(source, info), name));
+        }
     }
 
     private static final Comparator<Transition<?, ?>> ORDER =

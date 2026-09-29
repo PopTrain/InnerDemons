@@ -15,6 +15,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.poptrain.innerdemons.core.condition.Condition;
+import com.poptrain.innerdemons.core.condition.ConditionResult;
+
 public final class StateGraph<C, S> {
 
     private static final StateBehavior<?, ?> EMPTY_BEHAVIOR = new StateBehavior<>() {
@@ -364,6 +367,16 @@ public final class StateGraph<C, S> {
             return this;
         }
 
+        public StateBuilder<C, S> canEnter(Condition<? super C> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return canEnter(condition::test);
+        }
+
+        public StateBuilder<C, S> canExit(Condition<? super StateContext<C, S>> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return canExit((ctx, info) -> condition.test(ctx));
+        }
+
         public StateBuilder<C, S> canExit(Predicate<StateContext<C, S>> condition) {
             Objects.requireNonNull(condition, "condition");
             return canExit((ctx, info) -> condition.test(ctx));
@@ -406,7 +419,7 @@ public final class StateGraph<C, S> {
         private final S to;
         private final int order;
         private Class<?> eventType;
-        private TransitionGuard<C, S> autoCondition;
+        private final List<Transition.NamedGuard<C, S>> autoChecks = new ArrayList<>();
         private final List<Transition.NamedGuard<C, S>> guards = new ArrayList<>();
         private TransitionAction<C, S> action;
         private int priority;
@@ -424,7 +437,7 @@ public final class StateGraph<C, S> {
             if (eventType != null) {
                 throw new StateGraphException(owner.name + ": transition " + describe() + " already listens for " + eventType.getSimpleName());
             }
-            if (autoCondition != null) {
+            if (!autoChecks.isEmpty()) {
                 throw new StateGraphException(owner.name + ": transition " + describe() + " cannot be both automatic and event driven");
             }
             this.eventType = type;
@@ -434,8 +447,18 @@ public final class StateGraph<C, S> {
         public <E> TransitionBuilder<C, S> on(Class<E> type, EventGuard<C, S, E> guard) {
             on(type);
             Objects.requireNonNull(guard, "guard");
-            guards.add(new Transition.NamedGuard<>("event:" + type.getSimpleName(),
+            guards.add(Transition.NamedGuard.of("event:" + type.getSimpleName(),
                     (source, info) -> type.isInstance(info.event()) && guard.test(source, type.cast(info.event()))));
+            return this;
+        }
+
+        public <E> TransitionBuilder<C, S> on(Class<E> type, Condition<? super E> condition) {
+            on(type);
+            Objects.requireNonNull(condition, "condition");
+            String label = "event:" + type.getSimpleName();
+            guards.add(new Transition.NamedGuard<>(label,
+                    (source, info) -> info.eventAs(type).map(condition::evaluate)
+                            .orElseGet(() -> ConditionResult.fail(label))));
             return this;
         }
 
@@ -446,15 +469,24 @@ public final class StateGraph<C, S> {
 
         public TransitionBuilder<C, S> when(TransitionGuard<C, S> condition) {
             Objects.requireNonNull(condition, "condition");
+            return addAuto(Transition.NamedGuard.of("when", condition));
+        }
+
+        public TransitionBuilder<C, S> when(Condition<? super C> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return addAuto(new Transition.NamedGuard<>("when " + condition.describe(), ownerCheck(condition)));
+        }
+
+        public TransitionBuilder<C, S> whenContext(Condition<? super StateContext<C, S>> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return addAuto(new Transition.NamedGuard<>("when " + condition.describe(), contextCheck(condition)));
+        }
+
+        private TransitionBuilder<C, S> addAuto(Transition.NamedGuard<C, S> check) {
             if (eventType != null) {
                 throw new StateGraphException(owner.name + ": transition " + describe() + " cannot be both automatic and event driven");
             }
-            if (autoCondition != null) {
-                TransitionGuard<C, S> previous = autoCondition;
-                this.autoCondition = (s, i) -> previous.test(s, i) && condition.test(s, i);
-            } else {
-                this.autoCondition = condition;
-            }
+            autoChecks.add(check);
             return this;
         }
 
@@ -473,9 +505,39 @@ public final class StateGraph<C, S> {
         }
 
         public TransitionBuilder<C, S> guard(String guardName, TransitionGuard<C, S> guard) {
-            guards.add(new Transition.NamedGuard<>(Objects.requireNonNull(guardName, "guardName"),
+            guards.add(Transition.NamedGuard.of(Objects.requireNonNull(guardName, "guardName"),
                     Objects.requireNonNull(guard, "guard")));
             return this;
+        }
+
+        public TransitionBuilder<C, S> guard(Condition<? super C> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return guard(condition.describe(), condition);
+        }
+
+        public TransitionBuilder<C, S> guard(String guardName, Condition<? super C> condition) {
+            Objects.requireNonNull(condition, "condition");
+            guards.add(new Transition.NamedGuard<>(Objects.requireNonNull(guardName, "guardName"), ownerCheck(condition)));
+            return this;
+        }
+
+        public TransitionBuilder<C, S> guardContext(Condition<? super StateContext<C, S>> condition) {
+            Objects.requireNonNull(condition, "condition");
+            return guardContext(condition.describe(), condition);
+        }
+
+        public TransitionBuilder<C, S> guardContext(String guardName, Condition<? super StateContext<C, S>> condition) {
+            Objects.requireNonNull(condition, "condition");
+            guards.add(new Transition.NamedGuard<>(Objects.requireNonNull(guardName, "guardName"), contextCheck(condition)));
+            return this;
+        }
+
+        private static <C, S> Transition.GuardCheck<C, S> ownerCheck(Condition<? super C> condition) {
+            return (source, info) -> condition.evaluate(source.owner());
+        }
+
+        private static <C, S> Transition.GuardCheck<C, S> contextCheck(Condition<? super StateContext<C, S>> condition) {
+            return (source, info) -> condition.evaluate(source);
         }
 
         public TransitionBuilder<C, S> action(TransitionAction<C, S> action) {
@@ -503,9 +565,9 @@ public final class StateGraph<C, S> {
             Transition.Kind kind;
             if (eventType != null) {
                 kind = Transition.Kind.EVENT;
-            } else if (autoCondition != null) {
+            } else if (!autoChecks.isEmpty()) {
                 kind = Transition.Kind.AUTO;
-                all.add(new Transition.NamedGuard<>("when", autoCondition));
+                all.addAll(autoChecks);
             } else {
                 kind = Transition.Kind.REQUEST;
             }

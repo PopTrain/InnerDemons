@@ -11,6 +11,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import com.poptrain.innerdemons.core.condition.ConditionResult;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -423,8 +425,12 @@ public class StateMachine<C, S> {
         StateNode<C, S> target = graph.node(transition.to());
         TransitionInfo<S> info = new TransitionInfo<>(currentState(), target.key, event, cause, transition.name());
         for (Transition.NamedGuard<C, S> guard : transition.guards()) {
-            if (!check("guard", source.node(), () -> guard.guard().test(source, info))) {
-                return new Outcome(TransitionResult.GUARD_REJECTED, transition.name() + " blocked by " + guard.name());
+            ConditionResult result = evaluateGuard(guard, source, info);
+            if (result.failed()) {
+                String detail = result.reason().equals(guard.name())
+                        ? guard.name()
+                        : guard.name() + " (" + result.reason() + ")";
+                return new Outcome(TransitionResult.GUARD_REJECTED, transition.name() + " blocked by " + detail);
             }
         }
         Plan<C, S> plan = plan(source.node(), target);
@@ -625,6 +631,17 @@ public class StateMachine<C, S> {
         } catch (RuntimeException e) {
             reportError(phase, node, e);
             return false;
+        }
+    }
+
+    private ConditionResult evaluateGuard(Transition.NamedGuard<C, S> guard, StateContext<C, S> source,
+                                          TransitionInfo<S> info) {
+        try {
+            ConditionResult result = guard.check().check(source, info);
+            return result != null ? result : ConditionResult.fail("returned no result");
+        } catch (RuntimeException e) {
+            reportError("guard", source.node(), e);
+            return ConditionResult.fail("threw " + e.getClass().getSimpleName());
         }
     }
 
