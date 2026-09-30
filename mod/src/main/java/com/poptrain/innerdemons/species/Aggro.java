@@ -4,15 +4,15 @@ import com.mojang.serialization.Codec;
 import java.util.Locale;
 import net.minecraft.util.StringRepresentable;
 
-public enum GrowthRate implements StringRepresentable {
-  ERRATIC,
-  FAST,
-  MEDIUM,
-  SLOW,
-  FLUCTUATING;
+public enum Aggro implements StringRepresentable {
+  FRIENDLY,
+  PASSIVE,
+  NEUTRAL,
+  TERRITORIAL,
+  HOSTILE;
 
-  public static final Codec<GrowthRate> CODEC =
-      StringRepresentable.fromEnum(GrowthRate::values);
+  public static final Codec<Aggro> CODEC =
+      StringRepresentable.fromEnum(Aggro::values);
 
   @Override
   public String getSerializedName() {

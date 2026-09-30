@@ -26,7 +26,8 @@
     "behavior": {
         "flavor_preference": "sweet",
         "favorite_habitat": "temperate",
-        "social_tendency": "solitude"
+        "social_tendency": "solitude",
+        "aggro": "friendly"
     },
     "metrics": {
         "height": 0.4,

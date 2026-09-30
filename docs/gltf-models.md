@@ -61,9 +61,11 @@ static final GltfTextureSet SHINY = NORMAL.retextured(Map.of(
 Put all expressions for a face part in one sheet: a grid of equal frames. In Blender, unwrap the eye (or mouth) plane so it fills the **whole 0-1 UV square**. Then pick a frame at render time:
 
 ```java
-textures.withFrame("eyes", 4, 2, eyeFrame)     // 4 columns, 2 rows, frames 0..7 left-to-right, top-to-bottom
+textures.withFrame("eyes", 4, 2, eyeFrame)
         .withFrame("mouth", 4, 1, mouthFrame);
 ```
+
+The arguments are columns, rows and frame index. A 4×2 sheet has frames 0 to 7, numbered left to right, then top to bottom.
 
 The renderer remaps that material's UVs into the chosen cell. You can also swap whole files per expression with `with("eyes", binding.withTexture(...))` if you'd rather not use sheets.
 
@@ -133,7 +135,51 @@ Other hooks you can override: `modelScale`, `applyTransforms` (default: face bod
 - `stop(fade)` fades back to the rest pose.
 - An unknown animation name leaves the model in its rest pose rather than crashing.
 
-Demon behavior runs on the server state machine, so the usual pattern is: sync the current state (or an animation id) to the client with `SynchedEntityData`, then map it to an animation name in `animate`. `StateMachine.onTransitioned` is a good place to set that synced value.
+### Driving animations from the brain
+
+Demon behavior runs on the server state machine, and the client never has a brain. To animate from it, mirror the machine's state into a synced `DataKey` with `StateSync` (see [network.md](network.md)), then read that key in `animate`. This replaces the older `SynchedEntityData` approach.
+
+Declare the mirror key and add it to the demon's `SyncRegistry`:
+
+```java
+public static final DataKey<DemonState> ANIM_STATE = StateSync.stateKey("anim_state", DemonState.class);
+
+public static final SyncRegistry SYNC = SyncRegistry.builder("demon")
+        .key(ANIM_STATE, StateSync.stateSerializer(DemonState.class))
+        .build();
+```
+
+Start the mirror on the server, in the brain's constructor:
+
+```java
+public DemonBrain(DemonEntity demon) {
+    super(GRAPH, demon);
+    if (!demon.level().isClientSide()) {
+        StateSync.mirror(this, demon.data(), DemonData.ANIM_STATE);
+    }
+}
+```
+
+Then map the synced state to animation names on the client:
+
+```java
+@Override
+protected void animate(ImpEntity imp, GltfModel model, GltfAnimationController anim, float partialTick) {
+    DemonState state = imp.get(DemonData.ANIM_STATE);
+    if (state == DemonState.ATTACK) {
+        anim.play("attack", GltfAnimationController.Playback.HOLD_LAST_FRAME, 0.1f, 1f);
+    } else if (imp.walkAnimation.isMoving()) {
+        anim.play("walk");
+    } else {
+        anim.play("idle");
+    }
+}
+```
+
+- `mirror` writes the deepest active state on every transition, including the restore after a load. Use `mirrorPath` if the renderer also needs the parent states (for example, `COMBAT` as well as `STRIKE`). Use `mirrorAs(machine, data, key, mapping)` to sync something else, such as an animation name.
+- Keep the mirror key transient, which `StateSync.stateKey` does for you. The machine saves itself, and the mirror is rebuilt on restore.
+- To react once per change instead of polling every frame, listen on the client: `demon.data().listen(DemonData.ANIM_STATE, e -> ...)`.
+- A synced value only sends when it changes. If the brain leaves and re-enters the same state between two server ticks, the client doesn't see it, and a `HOLD_LAST_FRAME` animation stays frozen. For one-shot moments that can repeat back to back, such as a second attack, send a message (see [network.md](network.md)) and call `restart(...)` when it arrives.
 
 ## Shape keys
 
