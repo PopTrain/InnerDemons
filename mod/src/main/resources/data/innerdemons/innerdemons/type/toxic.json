@@ -1,0 +1,19 @@
+{
+    "strengths": [
+        "light",
+        "plant",
+        "water"
+    ],
+    "weaknesses": [
+        "mind",
+        "earth"
+    ],
+    "resistances": [
+        "toxic",
+        "plant",
+        "brawl",
+        "bug",
+        "light"
+    ],
+    "immunities": []
+}

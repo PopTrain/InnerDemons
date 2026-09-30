@@ -1,0 +1,17 @@
+{
+    "strengths": [
+        "archaic"
+    ],
+    "weaknesses": [
+        "ice",
+        "archaic",
+        "light"
+    ],
+    "resistances": [
+        "plant",
+        "fire",
+        "water",
+        "electric"
+    ],
+    "immunities": []
+}

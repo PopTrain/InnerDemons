@@ -4,6 +4,8 @@ import java.util.Optional;
 
 import com.poptrain.innerdemons.species.evolution.EvolutionMethod;
 import com.poptrain.innerdemons.species.evolution.EvolutionMethods;
+import com.poptrain.innerdemons.type.DemonType;
+import com.poptrain.innerdemons.type.DemonTypeValidator;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -18,6 +20,9 @@ public final class DemonRegistries {
     public static final ResourceKey<Registry<DemonSpecies>> SPECIES =
             ResourceKey.createRegistryKey(DemonCodecs.id("demon"));
 
+    public static final ResourceKey<Registry<DemonType>> TYPE =
+            ResourceKey.createRegistryKey(DemonCodecs.id("type"));
+
     public static final ResourceKey<Registry<EvolutionMethod<?>>> EVOLUTION_METHOD =
             ResourceKey.createRegistryKey(DemonCodecs.id("evolution_method"));
 
@@ -27,6 +32,7 @@ public final class DemonRegistries {
     public static void register(IEventBus modBus) {
         EvolutionMethods.METHODS.register(modBus);
         modBus.addListener(DemonRegistries::registerDataPackRegistries);
+        NeoForge.EVENT_BUS.addListener(DemonTypeValidator::onTagsUpdated);
         NeoForge.EVENT_BUS.addListener(DemonSpeciesValidator::onTagsUpdated);
     }
 
@@ -38,7 +44,16 @@ public final class DemonRegistries {
         return species(access).getOptional(id);
     }
 
+    public static Registry<DemonType> types(RegistryAccess access) {
+        return access.registryOrThrow(TYPE);
+    }
+
+    public static Optional<DemonType> type(RegistryAccess access, ResourceKey<DemonType> key) {
+        return types(access).getOptional(key);
+    }
+
     private static void registerDataPackRegistries(DataPackRegistryEvent.NewRegistry event) {
+        event.dataPackRegistry(TYPE, DemonType.CODEC, DemonType.CODEC);
         event.dataPackRegistry(SPECIES, DemonSpecies.CODEC, DemonSpecies.CODEC);
     }
 }

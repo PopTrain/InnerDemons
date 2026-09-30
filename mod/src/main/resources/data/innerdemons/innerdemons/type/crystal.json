@@ -1,0 +1,21 @@
+{
+    "strengths": [
+        "bug",
+        "air",
+        "ice"
+    ],
+    "weaknesses": [
+        "brawl"
+    ],
+    "resistances": [
+        "simple",
+        "fire",
+        "toxic",
+        "air",
+        "bug",
+        "mind"
+    ],
+    "immunities": [
+        "light"
+    ]
+}

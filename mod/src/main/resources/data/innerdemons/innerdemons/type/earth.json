@@ -1,0 +1,22 @@
+{
+    "strengths": [
+        "fire",
+        "toxic",
+        "electric",
+        "metal"
+    ],
+    "weaknesses": [
+        "plant",
+        "water",
+        "ice",
+        "brawl"
+    ],
+    "resistances": [
+        "toxic",
+        "metal",
+        "air"
+    ],
+    "immunities": [
+        "electric"
+    ]
+}

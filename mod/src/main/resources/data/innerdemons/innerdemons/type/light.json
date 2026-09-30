@@ -1,0 +1,19 @@
+{
+    "strengths": [
+        "brawl",
+        "dark",
+        "archaic"
+    ],
+    "weaknesses": [
+        "toxic",
+        "metal"
+    ],
+    "resistances": [
+        "brawl",
+        "dark",
+        "bug"
+    ],
+    "immunities": [
+        "archaic"
+    ]
+}

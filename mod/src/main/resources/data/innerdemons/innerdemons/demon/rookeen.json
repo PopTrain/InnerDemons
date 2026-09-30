@@ -20,8 +20,8 @@
         "growth_rate": "fast"
     },
     "gender_ratio": {
-        "male": 87,
-        "female": 12
+        "male": 875,
+        "female": 125
     },
     "behavior": {
         "flavor_preference": "sweet",

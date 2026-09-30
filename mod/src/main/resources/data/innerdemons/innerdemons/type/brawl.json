@@ -1,0 +1,19 @@
+{
+    "strengths": [
+        "earth",
+        "metal",
+        "ice",
+        "simple",
+        "dark"
+    ],
+    "weaknesses": [
+        "light",
+        "mind",
+        "air"
+    ],
+    "resistances": [
+        "bug",
+        "dark"
+    ],
+    "immunities": []
+}

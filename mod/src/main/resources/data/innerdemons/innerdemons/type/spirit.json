@@ -1,0 +1,18 @@
+{
+    "strengths": [
+        "spirit",
+        "mind"
+    ],
+    "weaknesses": [
+        "spirit",
+        "dark"
+    ],
+    "resistances": [
+        "toxic",
+        "bug"
+    ],
+    "immunities": [
+        "simple",
+        "brawl"
+    ]
+}

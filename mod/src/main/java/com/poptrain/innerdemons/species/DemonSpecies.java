@@ -5,12 +5,14 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.poptrain.innerdemons.species.evolution.Evolution;
+import com.poptrain.innerdemons.type.DemonType;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
 public record DemonSpecies(
-        List<ResourceLocation> types,
+        List<ResourceKey<DemonType>> types,
         Rank rank,
         BaseStats baseStats,
         Training training,
@@ -20,7 +22,7 @@ public record DemonSpecies(
         Movepool movepool) {
 
     public static final Codec<DemonSpecies> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.nonEmptyList(DemonCodecs.ID.listOf()).fieldOf("types").forGetter(DemonSpecies::types),
+            ExtraCodecs.nonEmptyList(DemonType.KEY_LIST_CODEC).fieldOf("types").forGetter(DemonSpecies::types),
             Rank.CODEC.fieldOf("rank").forGetter(DemonSpecies::rank),
             BaseStats.CODEC.fieldOf("base_stats").forGetter(DemonSpecies::baseStats),
             Training.CODEC.fieldOf("training").forGetter(DemonSpecies::training),
@@ -35,7 +37,7 @@ public record DemonSpecies(
         evolutions = List.copyOf(evolutions);
     }
 
-    public boolean hasType(ResourceLocation type) {
+    public boolean hasType(ResourceKey<DemonType> type) {
         return types.contains(type);
     }
 

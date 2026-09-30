@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 import com.poptrain.innerdemons.species.evolution.Evolution;
+import com.poptrain.innerdemons.type.DemonType;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -22,7 +23,10 @@ public final class DemonSpeciesValidator {
         if (event.getUpdateCause() != TagsUpdatedEvent.UpdateCause.SERVER_DATA_LOAD) {
             return;
         }
-        event.getRegistryAccess().registry(DemonRegistries.SPECIES).ifPresent(DemonSpeciesValidator::validate);
+        event.getRegistryAccess().registry(DemonRegistries.SPECIES).ifPresent(species -> {
+            validate(species);
+            event.getRegistryAccess().registry(DemonRegistries.TYPE).ifPresent(types -> validateTypes(species, types));
+        });
     }
 
     public static int validate(Registry<DemonSpecies> registry) {
@@ -40,6 +44,19 @@ public final class DemonSpeciesValidator {
             }
         }
         LOGGER.info("Loaded {} demon species with {} problem(s)", registry.size(), problems);
+        return problems;
+    }
+
+    public static int validateTypes(Registry<DemonSpecies> species, Registry<DemonType> types) {
+        int problems = 0;
+        for (Map.Entry<ResourceKey<DemonSpecies>, DemonSpecies> entry : species.entrySet()) {
+            for (ResourceKey<DemonType> type : entry.getValue().types()) {
+                if (!types.containsKey(type)) {
+                    LOGGER.warn("Demon species {} has unknown type {}", entry.getKey().location(), type.location());
+                    problems++;
+                }
+            }
+        }
         return problems;
     }
 }

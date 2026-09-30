@@ -1,0 +1,26 @@
+{
+    "strengths": [
+        "crystal",
+        "ice",
+        "light"
+    ],
+    "weaknesses": [
+        "fire",
+        "earth",
+        "brawl"
+    ],
+    "resistances": [
+        "simple",
+        "plant",
+        "ice",
+        "crystal",
+        "light",
+        "air",
+        "mind",
+        "archaic",
+        "bug"
+    ],
+    "immunities": [
+        "toxic"
+    ]
+}
