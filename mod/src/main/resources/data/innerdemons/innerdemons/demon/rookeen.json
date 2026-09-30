@@ -28,6 +28,10 @@
         "favorite_habitat": "temperate",
         "social_tendency": "solitude"
     },
+    "metrics": {
+        "height": 0.4,
+        "weight": 3.3
+    },
     "evolutions": [
         {
             "method": "low_friendship",

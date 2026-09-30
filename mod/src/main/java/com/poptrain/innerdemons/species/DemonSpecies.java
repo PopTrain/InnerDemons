@@ -18,6 +18,7 @@ public record DemonSpecies(
         Training training,
         GenderRatio genderRatio,
         Behavior behavior,
+        Metrics metrics,
         List<Evolution> evolutions,
         Movepool movepool) {
 
@@ -28,6 +29,7 @@ public record DemonSpecies(
             Training.CODEC.fieldOf("training").forGetter(DemonSpecies::training),
             GenderRatio.CODEC.optionalFieldOf("gender_ratio", GenderRatio.GENDERLESS).forGetter(DemonSpecies::genderRatio),
             Behavior.CODEC.fieldOf("behavior").forGetter(DemonSpecies::behavior),
+            Metrics.CODEC.fieldOf("metrics").forGetter(DemonSpecies::metrics),
             Evolution.CODEC.listOf().optionalFieldOf("evolutions", List.of()).forGetter(DemonSpecies::evolutions),
             Movepool.CODEC.optionalFieldOf("movepool", Movepool.EMPTY).forGetter(DemonSpecies::movepool)
     ).apply(instance, DemonSpecies::new));
